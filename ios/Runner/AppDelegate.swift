@@ -1,4 +1,4 @@
-import FirebaseAI
+import FirebaseAILogic
 import FirebaseCore
 import Flutter
 import UIKit
@@ -45,7 +45,7 @@ import UIKit
           let text: String
           if #available(iOS 26.0, *) {
             let model = HybridModel(
-              primary: FirebaseAI.SystemLanguageModel.default,
+              primary: SystemLanguageModel.default,
               secondary: ai.geminiModel(name: "gemini-2.5-flash-lite")
             )
             let session = ai.generativeModelSession(model: model)
