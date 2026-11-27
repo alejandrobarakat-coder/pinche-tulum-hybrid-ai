@@ -11,6 +11,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'mobile_web_view.dart';
+
 const apiBase = 'https://sales.theagrostore.com';
 
 Future<void> main() async {
@@ -652,29 +654,7 @@ class _ArticleWebViewPageState extends State<ArticleWebViewPage> {
               progress = value;
             });
           },
-          onPageFinished: (_) async {
-            await webController.runJavaScript(r'''
-              (() => {
-                const style = document.createElement('style');
-                style.textContent = `
-                  html, body {
-                    max-width: 100% !important;
-                    overflow-x: hidden !important;
-                  }
-
-                  img, picture, video, iframe {
-                    max-width: 100% !important;
-                    height: auto !important;
-                  }
-
-                  img {
-                    object-fit: contain !important;
-                  }
-                `;
-                document.head.appendChild(style);
-              })();
-            ''');
-          },
+          onPageFinished: (_) => fitMobileWebPage(webController),
           onWebResourceError: (error) {
             if (!mounted || error.isForMainFrame != true) return;
 

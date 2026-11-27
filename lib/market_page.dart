@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'mobile_web_view.dart';
+
 class MarketPage extends StatefulWidget {
   const MarketPage({super.key});
 
@@ -281,8 +283,10 @@ class _MarketLinkPageState extends State<_MarketLinkPage> {
   void initState() {
     super.initState();
     controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onPageFinished: (_) => fitMobileWebPage(controller),
           onNavigationRequest: (request) {
             final link = Uri.tryParse(request.url);
             return link?.scheme == 'https' && link?.host == widget.url.host
