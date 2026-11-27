@@ -1,6 +1,7 @@
 import FirebaseAILogic
 import FirebaseCore
 import Flutter
+import FoundationModels
 import UIKit
 
 @main
@@ -39,24 +40,26 @@ import UIKit
 
       Task { @MainActor in
         let prompt = "Extract up to five news archive search terms. Keep proper names unchanged. Return search terms only. Query: \(query)"
-        let ai = FirebaseAI.firebaseAI(backend: .googleAI())
+        if #available(iOS 26.0, *), SystemLanguageModel.default.isAvailable {
+          do {
+            let session = LanguageModelSession()
+            let response = try await session.respond(to: prompt)
+            let terms = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !terms.isEmpty {
+              result(terms)
+              return
+            }
+          } catch {
+            // Use Gemini if the device model cannot complete the request.
+          }
+        }
 
         do {
-          let text: String
-          if #available(iOS 26.0, *) {
-            let model = HybridModel(
-              primary: SystemLanguageModel.default,
-              secondary: ai.geminiModel(name: "gemini-2.5-flash-lite")
-            )
-            let session = ai.generativeModelSession(model: model)
-            text = try await session.respond(to: prompt).content
-          } else {
-            let response = try await ai.generativeModel(
-              modelName: "gemini-2.5-flash-lite"
-            ).generateContent(prompt)
-            text = response.text ?? ""
-          }
-          let terms = text.trimmingCharacters(in: .whitespacesAndNewlines)
+          let ai = FirebaseAI.firebaseAI(backend: .googleAI())
+          let response = try await ai.generativeModel(
+            modelName: "gemini-2.5-flash-lite"
+          ).generateContent(prompt)
+          let terms = (response.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
           if terms.isEmpty {
             result(FlutterError(
               code: "EMPTY_RESPONSE",
